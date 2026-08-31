@@ -9,6 +9,7 @@ import { useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
+import createChat from "@/lib/actions/createChat";
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -19,12 +20,12 @@ export default function Home() {
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const suggestionListId = "search-suggestions";
   const router = useRouter();
-
-  function chatInputSubmit(query?: string, forceChat?: boolean) {
+  async function chatInputSubmit(query?: string, forceChat?: boolean) {
     if (!forceChat && !showExpandedChatInput) {
       window.location.href = `https://google.com/search?q=${encodeURIComponent(query || input)}`;
     } else {
-      router.push("/chat");
+      const newChatId = await createChat();
+      router.push(`/chat/${newChatId}`);
     }
   }
   async function updateSearchSuggestions(query: string) {
@@ -147,12 +148,12 @@ export default function Home() {
           <InputGroupAddon align={showExpandedChatInput ? "block-end" : "inline-end"} className={showExpandedChatInput ? "pt-0" : ""}>
               {showExpandedChatInput && <AddItemButton/>}
               <InputGroupButton variant={showExpandedChatInput ? "default" : "ghost"} disabled={!input} size={showExpandedChatInput ? "sm" : "icon-sm"} className="ml-auto">
-                {showExpandedChatInput ? <>Chat <CornerDownLeft /></> : <Search />}
+                {showExpandedChatInput ? <>Surf <CornerDownLeft /></> : <Search />}
                 <span className="sr-only">Search</span>
               </InputGroupButton>
           </InputGroupAddon>
         </InputGroup>
-        {!showExpandedChatInput && showSearchSuggestions && searchSuggestions.length > 0 && <div id={suggestionListId} role="listbox" className="absolute left-0 top-[110%] z-10 mt-1 w-full overflow-hidden rounded-b-lg border border-border bg-card rounded-lg">
+        {!showExpandedChatInput && showSearchSuggestions && searchSuggestions.length > 0 && <div id={suggestionListId} role="listbox" className="absolute left-0 top-[110%] z-10 mt-1 w-full overflow-hidden border border-border bg-card rounded-2xl">
               {searchSuggestions.map((suggestion, index) => (
                 <div
                   key={index}
