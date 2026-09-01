@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Slab, Geist_Mono } from "next/font/google"
 import "./globals.css";
-import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ChatList from "@/components/chat/ChatList";
+import { AnimatePresence } from "motion/react";
 
 
 const inter = Inter({
@@ -41,8 +41,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           disableTransitionOnChange
         >
           <TooltipProvider>
-            <ChatList/>
-            {children}
+            <div className="flex absolute top-0 left-0 z-10 w-screen h-screen">
+              <AnimatePresence>
+                <ChatList key="e"/>
+                {children}
+              </AnimatePresence>
+            </div>
           </TooltipProvider>
         </ThemeProvider>
       </body>
