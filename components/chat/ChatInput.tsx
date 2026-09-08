@@ -1,10 +1,10 @@
 import AddItemButton from "@/components/chat/AddItemButton";
 import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
-import { CornerDownLeft, Search } from "lucide-react";
+import { CornerDownLeft, Search, Square } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 import { Spinner } from "../ui/spinner";
 
-export default function ChatInput({showExpandedChatInput, value, loading, disabled, suggestionListId, onChange, onHeightChange, onSubmitClick, onClick, onFocus, onBlur, onKeyDown, searchSuggestions, activeSuggestionIndex}:{showExpandedChatInput: boolean, value: string, loading?: boolean, disabled?: boolean, suggestionListId?: string, onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void, onHeightChange?: (height: number) => void, onSubmitClick?: () => void, onClick?: () => void, onFocus?: ()=> void, onBlur?: ()=> void, onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void, searchSuggestions?: string[], activeSuggestionIndex?: number}){
+export default function ChatInput({showExpandedChatInput, value, loading, disabled, showStop, suggestionListId, onChange, onHeightChange, onSubmitClick, onClick, onFocus, onBlur, onKeyDown, searchSuggestions, activeSuggestionIndex}:{showExpandedChatInput: boolean, value: string, loading?: boolean, disabled?: boolean, showStop?: boolean, suggestionListId?: string, onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void, onHeightChange?: (height: number) => void, onSubmitClick?: () => void, onClick?: () => void, onFocus?: ()=> void, onBlur?: ()=> void, onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void, searchSuggestions?: string[], activeSuggestionIndex?: number}){
     return <InputGroup>
           {!showExpandedChatInput && <InputGroupAddon align="inline-start">
             <AddItemButton/>
@@ -27,8 +27,8 @@ export default function ChatInput({showExpandedChatInput, value, loading, disabl
           />
           <InputGroupAddon align={showExpandedChatInput ? "block-end" : "inline-end"} className={showExpandedChatInput ? "pt-0" : ""}>
               {showExpandedChatInput && <AddItemButton/>}
-              <InputGroupButton disabled={disabled || loading || !value} variant={showExpandedChatInput ? "default" : "ghost"} size={showExpandedChatInput ? "sm" : "icon-sm"} className="ml-auto" onClick={onSubmitClick}>
-                { showExpandedChatInput ? <>Surf {loading ? <Spinner/> : <CornerDownLeft />}</> : <Search />}
+              <InputGroupButton disabled={!showStop && (disabled || loading || !value)} variant={showExpandedChatInput ? "default" : "ghost"} size={showExpandedChatInput ? "sm" : "icon-sm"} className="ml-auto" onClick={onSubmitClick}>
+                { showStop ? <>Stop <Square/></> :  showExpandedChatInput ? <>Surf {loading ? <Spinner/> : <CornerDownLeft />}</> : <Search />}
                 <span className="sr-only">Search</span>
               </InputGroupButton>
           </InputGroupAddon>

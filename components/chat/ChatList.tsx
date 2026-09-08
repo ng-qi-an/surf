@@ -28,7 +28,7 @@ export default function ChatList(){
             <motion.div initial={{x: -250, width: 0}} animate={{x: 0, width: 250}} exit={{x: -250, width: 0}} transition={{type: "spring", stiffness: 400, damping: 33}}  key="chatListDesktop" className="shrink-0 overflow-hidden py-4 z-40 border-r h-screen bg-background">
                 <div className="w-[250px]">
                 <div className="flex items-center w-full justify-between px-4 pl-5 mb-3">
-                    <h1 className="font-heading opacity-90 cursor-default">Chats</h1>
+                    <h1 className="font-heading opacity-90 cursor-default">Surf</h1>
                     <Button onMouseOver={()=> setHoverSidebarButton(true)} onMouseLeave={()=> setHoverSidebarButton(false)}  key="toggleChatListButton" variant="ghost" size="icon-sm" className="opacity-90" onClick={()=>{setShowChatList(false); setHoverSidebarButton(false)}}>
                         {hoverSidebarButton ? <PanelRightOpen/> : <PanelRight/>}
                     </Button>

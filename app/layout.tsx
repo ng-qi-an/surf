@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Slab, Geist_Mono } from "next/font/google"
 import "./globals.css";
+import "streamdown/styles.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ChatList from "@/components/chat/ChatList";
