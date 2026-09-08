@@ -2,11 +2,11 @@
 import ChatInput from "@/components/chat/ChatInput";
 import getChat from "@/lib/actions/getChat";
 import { ChatType } from "@/lib/db";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createChat } from "@shadcn/helpers/ai-sdk"
 import { useChat } from "@ai-sdk/react"
-import { Message, MessageContent } from "@/components/ui/message"
+import { Message, MessageContent, MessageFooter } from "@/components/ui/message"
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -20,10 +20,13 @@ import { Streamdown } from "streamdown";
 import { DefaultChatTransport, UIMessage } from "ai";
 import { Marker, MarkerContent, MarkerIcon } from "@/components/ui/marker";
 import { Spinner } from "@/components/ui/spinner";
-import { ChevronDown, Globe } from "lucide-react";
+import { Check, ChevronDown, Copy, Globe, Info, RefreshCcw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import SearchResult from "@/components/chat/SearchResult";
 import updateChatMessages from "@/lib/actions/updateChatMessages";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import generateChatName from "@/lib/actions/generateChatName";
 const demoChat = createChat()
   .user(
     "I'm building a chat for our app and the scroll behavior is driving me nuts. Every time the AI streams a reply, the whole thread jumps around."
@@ -61,8 +64,8 @@ export default function ChatPage(){
     const [chat, setChat] = useState<ChatType | null>(null);
     const [value, setValue] = useState("");
     const { id: chatId } = useParams();
-    const { messages, setMessages, sendMessage, status, stop } = useChat({
-        messages: chat?.messages, // dummyInitialMessages,
+    const router = useRouter();
+    const { messages, setMessages, sendMessage, status, stop, regenerate } = useChat({
         transport: new DefaultChatTransport({
             api: '/api/chat',
         }), //dummyTransport,
@@ -72,6 +75,8 @@ export default function ChatPage(){
     })
     const nextMessage = demoChat.next(messages)
     const isBusy = status === "submitted" || status === "streaming"
+    const params = useSearchParams()
+    const [copied, setCopied] = useState(false);
 
     useEffect(()=>{
         (async()=>{
@@ -82,17 +87,28 @@ export default function ChatPage(){
                 return;
             }
             setChat(chat);
-            setMessages(chat.messages)
+            setMessages(chat.messages);
+            if (params.get("q")) {
+                console.log("Sending message from query param:", params.get("q"))
+                const newQuery = params.get("q") as string;
+                router.replace(`/chat/${chatId}`, { scroll: false });
+                sendMessage({text: newQuery});
+                generateChatName({query: newQuery, chatId: chatId as string});
+            }
             setLoading(false);
         })();
     }, [])
+    function onInputSubmit(query: string) {
+        sendMessage({text: query});
+        setValue("");
+    }
     return !loading && <div className="w-full h-screen flex flex-col items-center px-4">
-        <div className="w-full max-w-192 py-6 pt-12 h-full flex flex-col">
+        <div className="w-full max-w-192 pb-6 pt-2 h-full flex flex-col">
             <div className="w-full flex-1 min-h-0 pb-8">
-                <MessageScrollerProvider>
+                <MessageScrollerProvider autoScroll defaultScrollPosition="end">
                     <MessageScroller>
                         <MessageScrollerViewport>
-                            <MessageScrollerContent>
+                            <MessageScrollerContent className="pt-10">
                                 {messages.map((message, mIdx) => (
                                     <MessageScrollerItem
                                         key={message.id}
@@ -116,7 +132,42 @@ export default function ChatPage(){
                                                             })}
                                                     </BubbleContent>
                                                 </Bubble>
-
+                                                {message.role == "assistant" && <MessageFooter className={`gap-1 flex opacity-0 ${mIdx == messages.length - 1 ? isBusy ? "" : "opacity-100" : "hover:opacity-100"} transition-all`}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger render={<span/>}>
+                                                            <Button variant="ghost" size="icon-sm" onClick={()=>{
+                                                                navigator.clipboard.writeText(message.parts.filter((part) => part.type === "text").map((part)=> part.text).join(""))
+                                                                setCopied(true);
+                                                                setTimeout(()=> setCopied(false), 2000)
+                                                            }}>
+                                                                {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Copy to Clipboard</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                    <Tooltip>
+                                                        <TooltipTrigger render={<span/>}>
+                                                            <Button variant="ghost" size="icon-sm">
+                                                                <Info className="size-3" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Used: GLM 5.3-flash</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                    {mIdx == messages.length - 1 && <Tooltip>
+                                                        <TooltipTrigger render={<span/>}>
+                                                            <Button onClick={()=> regenerate()} variant="ghost" size="icon-sm">
+                                                                <RefreshCcw className="size-3" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Regenerate response</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>}
+                                                </MessageFooter>}
                                             </MessageContent>
                                         </Message>
                                     </MessageScrollerItem>
@@ -138,8 +189,7 @@ export default function ChatPage(){
                     if (e.key == "Enter" && !e.shiftKey) {
                         e.preventDefault();
                         if (!isBusy && value) {
-                            sendMessage({text: value});
-                            setValue("");
+                            onInputSubmit(value);
                         }
                     }
                 }}
@@ -147,8 +197,7 @@ export default function ChatPage(){
                     if (isBusy) {
                         stop()
                     } else if (value && !isBusy) {
-                        sendMessage({text: value});
-                        setValue("");
+                        onInputSubmit(value);
                     }
                 }}
             />

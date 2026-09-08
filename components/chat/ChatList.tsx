@@ -13,7 +13,7 @@ import { Separator } from "../ui/separator";
 export default function ChatList(){
     const [showChatList, setShowChatList] = useState(false);
     const [hoverSidebarButton, setHoverSidebarButton] = useState(false);
-    const chats = useLiveQuery(async() => (await db.chats.toArray()).toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime()));
+    const chats = useLiveQuery(async() => (await db.chats.toArray()).toSorted((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()));
     const router = useRouter();
     const pathname = usePathname();
 
@@ -25,7 +25,7 @@ export default function ChatList(){
                 </Button>
             </motion.div>
         :
-            <motion.div initial={{x: -250, width: 0}} animate={{x: 0, width: 250}} exit={{x: -250, width: 0}} transition={{type: "spring", stiffness: 400, damping: 33}}  key="chatListDesktop" className="shrink-0 overflow-hidden py-4 z-40 border-r h-screen bg-background">
+            <motion.div initial={{x: -250, width: 0}} animate={{x: 0, width: 250}} exit={{x: -250, width: 0}} transition={{type: "spring", stiffness: 400, damping: 33}}  key="chatListDesktop" className="shrink-0 overflow-hidden py-4 z-40 border-r h-screen fixed z-40 md:static bg-background">
                 <div className="w-[250px]">
                 <div className="flex items-center w-full justify-between px-4 pl-5 mb-3">
                     <h1 className="font-heading opacity-90 cursor-default">Surf</h1>
@@ -61,13 +61,13 @@ export default function ChatList(){
                 </div>
             </motion.div>
         }
-        <div key="chatListBackdrop" id="chatListBackdrop" className={`w-screen h-screen fixed top-0 left-0 bg-black/50 z-30 block lg:hidden ${showChatList ? 'pointer-events-all opacity-100' : 'pointer-events-none opacity-0'} transition-all`} onClick={()=>setShowChatList(false)}/>
-        {showChatList && <Fragment >
+        <div key="chatListBackdrop" id="chatListBackdrop" className={`w-screen h-screen fixed top-0 left-0 bg-black/50 z-30 block md:hidden ${showChatList ? 'pointer-events-all opacity-100' : 'pointer-events-none opacity-0'} transition-all`} onClick={()=>setShowChatList(false)}/>
+        {/* {showChatList && <Fragment >
             <motion.div key="chatListMobile" initial={{x: -300}} animate={{x: 0}} exit={{x: -300}} transition={{type: "spring", stiffness: 400, damping: 33}} className="fixed top-0 left-0 w-full max-w-[300px] z-40 h-screen p-4 lg:hidden">
                 <div className="w-full h-full bg-background border rounded-xl">
                 </div>
             </motion.div>
         </Fragment>
-        }
+        } */}
     </AnimatePresence>
 }

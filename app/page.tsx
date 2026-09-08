@@ -25,7 +25,7 @@ export default function Home() {
       window.location.href = `https://google.com/search?q=${encodeURIComponent(query || input)}`;
     } else {
       const newChatId = await createChat();
-      router.push(`/chat/${newChatId}`);
+      router.push(`/chat/${newChatId}?q=${encodeURIComponent(query || input)}`);
     }
   }
   async function updateSearchSuggestions(query: string) {
@@ -91,40 +91,41 @@ export default function Home() {
             }
           }}
           onKeyDown={(e)=>{
-            if (!showExpandedChatInput && searchSuggestions.length > 0) {
-              if (e.key === "ArrowDown") {
+              if (e.key == "Enter" && (e.ctrlKey || e.metaKey)){
                 e.preventDefault();
-                setActiveSuggestionIndex((currentIndex) =>
-                  currentIndex < searchSuggestions.length - 1 ? currentIndex + 1 : 0
-                );
-                setInput(searchSuggestions[activeSuggestionIndex + 1] || searchSuggestions[0]);
-                return;
-              }
-              if (e.key === "ArrowUp") {
-                e.preventDefault();
-                setActiveSuggestionIndex((currentIndex) =>
-                  currentIndex > 0 ? currentIndex - 1 : searchSuggestions.length - 1
-                );
-                setInput(searchSuggestions[activeSuggestionIndex + 1] || searchSuggestions[0]);
-                return;
-              }
-              if (e.key === "Escape") {
-                e.preventDefault();
-                setShowSearchSuggestions(false);
-                setActiveSuggestionIndex(-1);
-                return;
-              }
-              if (e.key == "Enter" && e.ctrlKey || e.metaKey){
-                e.preventDefault();
+                console.log("sending message")
                 chatInputSubmit(undefined, true);
                 return;
               }
-              if (e.key === "Enter" && !e.shiftKey && activeSuggestionIndex >= 0) {
-                e.preventDefault();
-                chatInputSubmit(searchSuggestions[activeSuggestionIndex]);
-                return;
+              if (!showExpandedChatInput && searchSuggestions.length > 0){
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setActiveSuggestionIndex((currentIndex) =>
+                    currentIndex < searchSuggestions.length - 1 ? currentIndex + 1 : 0
+                  );
+                  setInput(searchSuggestions[activeSuggestionIndex + 1] || searchSuggestions[0]);
+                  return;
+                }
+                if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setActiveSuggestionIndex((currentIndex) =>
+                    currentIndex > 0 ? currentIndex - 1 : searchSuggestions.length - 1
+                  );
+                  setInput(searchSuggestions[activeSuggestionIndex + 1] || searchSuggestions[0]);
+                  return;
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  setShowSearchSuggestions(false);
+                  setActiveSuggestionIndex(-1);
+                  return;
+                }
+                if (e.key === "Enter" && !e.shiftKey && activeSuggestionIndex >= 0) {
+                  e.preventDefault();
+                  chatInputSubmit(searchSuggestions[activeSuggestionIndex]);
+                  return;
+                }
               }
-            }
             if (e.key == "Enter" && !e.shiftKey) {
               e.preventDefault();
               chatInputSubmit();
