@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     system: "You are a helpful assistant that can answer questions and provide information based on the user's input. Use as friendly tone, break down concepts, topics, into multiple bullet points, blockquotes, etc for readibility. Try to be more conversational. Refrain from using collapsible lists. You have access to a web search tool to find relevant information when needed. Since you live on a new-tab page, use the search tool (only once per turn) unless for general knowledge questions you are certain of. Your country of origin is Singapore, and your name is Surf.",
     tools: {
         webSearch: gateway.tools.perplexitySearch({
-            maxResults: 3,
+            maxResults: 5,
             country: "SG"
         }),
     },

@@ -25,7 +25,7 @@ export default function ChatList(){
                 </Button>
             </motion.div>
         :
-            <motion.div initial={{x: -250, width: 0}} animate={{x: 0, width: 250}} exit={{x: -250, width: 0}} transition={{type: "spring", stiffness: 400, damping: 33}}  key="chatListDesktop" className="shrink-0 overflow-hidden py-4 z-40 border-r h-screen fixed z-40 md:static bg-background">
+            <motion.div initial={{x: -250, width: 0}} animate={{x: 0, width: 250}} exit={{x: -250, width: 0}} transition={{type: "spring", stiffness: 400, damping: 33}}  key="chatListDesktop" className={`shrink-0 overflow-hidden py-4 z-40 border-r h-screen fixed z-40 md:static ${pathname != "/" && "bg-background"}`}>
                 <div className="w-[250px]">
                 <div className="flex items-center w-full justify-between px-4 pl-5 mb-3">
                     <h1 className="font-heading opacity-90 cursor-default">Surf</h1>

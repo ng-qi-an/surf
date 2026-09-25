@@ -5,7 +5,7 @@ import AddItemButton from "@/components/chat/AddItemButton";
 import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { CornerDownLeft, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import createChat from "@/lib/actions/createChat";
@@ -19,6 +19,7 @@ export default function Home() {
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const suggestionListId = "search-suggestions";
+  const [showChatWhenCollapsed, setShowChatWhenCollapsed] = useState(false);
   const router = useRouter();
   async function chatInputSubmit(query?: string, forceChat?: boolean) {
     if (!forceChat && !showExpandedChatInput) {
@@ -45,6 +46,23 @@ export default function Home() {
       setSearchSuggestions([]);
     }
   }
+  useEffect(()=>{
+    function handleKeyDown(e: KeyboardEvent) {
+      console.log("keydown", e.key, e.ctrlKey);
+      if (e.ctrlKey || e.key == "Control") {
+        setShowChatWhenCollapsed(true);
+      }
+    }
+    function handleKeyUp(e: KeyboardEvent) {
+        setShowChatWhenCollapsed(false);
+    }
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
   return <> 
   <div className="w-screen h-screen absolute z-0 top-0 left-0">
     <SideRays
@@ -72,6 +90,7 @@ export default function Home() {
           suggestionListId={suggestionListId}
           activeSuggestionIndex={activeSuggestionIndex}
           showExpandedChatInput={showExpandedChatInput}
+          showChatWhenCollapsed={showChatWhenCollapsed}
           searchSuggestions={searchSuggestions}
           onChange={(e) => {
               const value = e.target.value;

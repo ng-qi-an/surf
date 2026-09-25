@@ -27,6 +27,7 @@ import updateChatMessages from "@/lib/actions/updateChatMessages";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import generateChatName from "@/lib/actions/generateChatName";
+import SoftAurora from "@/components/backgrounds/SoftAurora";
 const demoChat = createChat()
   .user(
     "I'm building a chat for our app and the scroll behavior is driving me nuts. Every time the AI streams a reply, the whole thread jumps around."
@@ -102,7 +103,26 @@ export default function ChatPage(){
         sendMessage({text: query});
         setValue("");
     }
-    return !loading && <div className="w-full h-screen flex flex-col items-center px-4">
+    return !loading && <div className="w-full h-screen flex flex-col max-h-screen! overflow-hidden items-center px-4 relative">
+        <AnimatePresence>
+            {isBusy && <motion.div initial={{bottom: "-500px"}} animate={{bottom:"-250px"}} exit={{bottom: "-500px"}} transition={{duration: 0.3, delay: 0.2}} className="absolute h-[500px] -bottom-[250px] w-screen -z-10 blur-lg pointer-events-none">
+                <SoftAurora 
+                    speed={1.9}
+                    scale={1.5}
+                    brightness={1}
+                    color1="#f7f7f7"
+                    color2="#2563eb"
+                    noiseFrequency={2}
+                    noiseAmplitude={1}
+                    bandHeight={0.5}
+                    bandSpread={1}
+                    octaveDecay={0.1}
+                    layerOffset={0.25}
+                    colorSpeed={1.6}
+                    enableMouseInteraction={false}
+                />
+            </motion.div>}
+        </AnimatePresence>
         <div className="w-full max-w-192 pb-6 pt-2 h-full flex flex-col">
             <div className="w-full flex-1 min-h-0 pb-8">
                 <MessageScrollerProvider autoScroll defaultScrollPosition="end">
@@ -180,6 +200,7 @@ export default function ChatPage(){
             </div>
             <ChatInput 
                 showExpandedChatInput={true}
+                showChatWhenCollapsed={false}
                 value={value}
                 disabled={status == "submitted"}
                 loading={isBusy}
