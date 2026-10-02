@@ -1,15 +1,14 @@
 'use client';
 
 import SideRays from "@/components/backgrounds/SideRays";
-import AddItemButton from "@/components/chat/AddItemButton";
-import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { CornerDownLeft, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion, stagger } from "motion/react";
 import { useRouter } from "next/navigation";
 import createChat from "@/lib/actions/createChat";
 import ChatInput from "@/components/chat/ChatInput";
+import { getRandomWelcomeText } from "@/lib/welcomeTexts";
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -20,6 +19,8 @@ export default function Home() {
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const suggestionListId = "search-suggestions";
   const [showChatWhenCollapsed, setShowChatWhenCollapsed] = useState(false);
+  const [quote, setQuote] = useState<any | null>(null);
+  const [welcome, setWelcome] = useState("");
   const router = useRouter();
   async function chatInputSubmit(query?: string, forceChat?: boolean) {
     if (!forceChat && !showExpandedChatInput) {
@@ -29,6 +30,20 @@ export default function Home() {
       router.push(`/chat/${newChatId}?q=${encodeURIComponent(query || input)}`);
     }
   }
+  useEffect(()=>{
+    async function fetchQuote() {
+      try {
+        const response = await fetch('/api/quote');
+        const data = await response.json();
+        console.log("Fetched quote:", data);
+        setQuote(data);
+      } catch (error) {
+        console.error("Failed to fetch quote:", error);
+      }
+    }
+    setWelcome(getRandomWelcomeText());
+    fetchQuote();
+  }, []);
   async function updateSearchSuggestions(query: string) {
     if (!query) {
       setSearchSuggestions([]);
@@ -48,8 +63,7 @@ export default function Home() {
   }
   useEffect(()=>{
     function handleKeyDown(e: KeyboardEvent) {
-      console.log("keydown", e.key, e.ctrlKey);
-      if (e.ctrlKey || e.key == "Control") {
+      if ((e.key == "Control" || e.key == "Meta") && input.length > 0) {
         setShowChatWhenCollapsed(true);
       }
     }
@@ -62,7 +76,11 @@ export default function Home() {
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [input]);
+    const welcomeText = {
+      hidden: { y: 10, opacity: 0 },
+      show: { y: 0, opacity: 1 },
+    }
   return <> 
   <div className="w-screen h-screen absolute z-0 top-0 left-0">
     <SideRays
@@ -82,9 +100,45 @@ export default function Home() {
   </div>
   <motion.div layout key="homePage" className="min-w-0 flex-1 h-screen flex flex-col items-center justify-center overflow-auto">
     <div className="flex flex-col items-center w-full max-w-[500px] relative">
-      <h1 className="text-3xl font-medium mb-1 font-heading">Welcome back!</h1>
-      <p className={`text-xs text-muted-foreground mb-4 ${input ? "opacity-50" : "opacity-0"} transition-all duration-400 delay-100`}>Ctrl+Enter for chat. Shift+Enter for new line.</p>
-      <motion.div className="relative w-full">
+
+
+      <motion.h1                     
+        initial="hidden"
+        animate="show"
+        variants={{
+        hidden: {},
+        show: {
+            transition: {
+                delayChildren: stagger(0.03)
+            }
+        }
+        }}
+ className="text-3xl font-medium mb-2 font-heading">{welcome.split(" ").map((text, index)=>{
+        return <motion.span  key={text+welcome+index} variants={welcomeText} className="inline-block mr-2">{text}</motion.span>
+      })}</motion.h1>
+      <AnimatePresence mode="wait">
+        {input ?
+          <motion.p 
+            key="text-hint"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1}}
+            exit={{ opacity: 0 }}
+            className={`text-sm text-muted-foreground/50 mb-6 transition-all duration-400 delay-100`}>
+            Ctrl+Enter for chat. Shift+Enter for new line.
+          </motion.p>
+        : quote ? <motion.p
+          key="quote"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1}}
+          exit={{ opacity: 0 }}
+          className={`text-sm text-muted-foreground/50 mb-6 transition-all duration-400 delay-100 text-center line-clamp-1 hover:line-clamp-none`}>
+          "{quote.quote || "."}" - {quote.author}
+        </motion.p> : <p className="h-5 mb-6"></p>}
+        {
+          
+        }
+      </AnimatePresence>
+      <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{delay: 0.1}} className="relative w-full">
         <ChatInput 
           value={input} 
           suggestionListId={suggestionListId}

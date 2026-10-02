@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import generateChatName from "@/lib/actions/generateChatName";
 import SoftAurora from "@/components/backgrounds/SoftAurora";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 const demoChat = createChat()
   .user(
     "I'm building a chat for our app and the scroll behavior is driving me nuts. Every time the AI streams a reply, the whole thread jumps around."
@@ -124,6 +125,9 @@ export default function ChatPage(){
             </motion.div>}
         </AnimatePresence>
         <div className="w-full max-w-192 pb-6 pt-2 h-full flex flex-col">
+            <div className="absolute bottom-4 right-4 z-10 opacity-50 hover:opacity-100 overflow-auto">
+                <ThemeToggle className=""/>
+              </div>
             <div className="w-full flex-1 min-h-0 pb-8">
                 <MessageScrollerProvider autoScroll defaultScrollPosition="end">
                     <MessageScroller>
