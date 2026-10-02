@@ -9,9 +9,10 @@ import { useRouter } from "next/navigation";
 import createChat from "@/lib/actions/createChat";
 import ChatInput from "@/components/chat/ChatInput";
 import { getRandomWelcomeText } from "@/lib/welcomeTexts";
+import { useChatContext } from "@/components/providers/chat-provider";
 
 export default function Home() {
-  const [input, setInput] = useState("");
+  const { input, setInput, attachments, uploadingFiles } = useChatContext();
   const [showExpandedChatInput, setShowExpandedChatInput] = useState(false);
   const defaultHeight = 48;
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
@@ -22,12 +23,13 @@ export default function Home() {
   const [quote, setQuote] = useState<any | null>(null);
   const [welcome, setWelcome] = useState("");
   const router = useRouter();
-  async function chatInputSubmit(query?: string, forceChat?: boolean) {
+  async function chatInputSubmit(query: string, forceChat?: boolean) {
     if (!forceChat && !showExpandedChatInput) {
-      window.location.href = `https://google.com/search?q=${encodeURIComponent(query || input)}`;
+      window.location.href = `https://google.com/search?q=${encodeURIComponent(query)}`;
     } else {
+      if (uploadingFiles || (!query.trim() && attachments.length == 0)) return;
       const newChatId = await createChat();
-      router.push(`/chat/${newChatId}?q=${encodeURIComponent(query || input)}`);
+      router.push(`/chat/${newChatId}?newChat=true`);
     }
   }
   useEffect(()=>{
@@ -100,8 +102,6 @@ export default function Home() {
   </div>
   <motion.div layout key="homePage" className="min-w-0 flex-1 h-screen flex flex-col items-center justify-center overflow-auto">
     <div className="flex flex-col items-center w-full max-w-[500px] relative">
-
-
       <motion.h1                     
         initial="hidden"
         animate="show"
@@ -113,9 +113,11 @@ export default function Home() {
             }
         }
         }}
- className="text-3xl font-medium mb-2 font-heading">{welcome.split(" ").map((text, index)=>{
-        return <motion.span  key={text+welcome+index} variants={welcomeText} className="inline-block mr-2">{text}</motion.span>
-      })}</motion.h1>
+        className="text-3xl font-medium mb-2 font-heading">
+          {welcome.split(" ").map((text, index)=>{
+            return <motion.span  key={text+welcome+index} variants={welcomeText} className="inline-block mr-2">{text}</motion.span>
+        })}
+      </motion.h1>
       <AnimatePresence mode="wait">
         {input ?
           <motion.p 
@@ -123,7 +125,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1}}
             exit={{ opacity: 0 }}
-            className={`text-sm text-muted-foreground/50 mb-6 transition-all duration-400 delay-100`}>
+            className={`text-sm text-muted-foreground/50 mb-6`}>
             Ctrl+Enter for chat. Shift+Enter for new line.
           </motion.p>
         : quote ? <motion.p
@@ -131,19 +133,16 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1}}
           exit={{ opacity: 0 }}
-          className={`text-sm text-muted-foreground/50 mb-6 transition-all duration-400 delay-100 text-center line-clamp-1 hover:line-clamp-none`}>
+          className={`text-sm text-muted-foreground/50 mb-6 text-center line-clamp-1 hover:line-clamp-none`}>
           "{quote.quote || "."}" - {quote.author}
         </motion.p> : <p className="h-5 mb-6"></p>}
-        {
-          
-        }
       </AnimatePresence>
       <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{delay: 0.1}} className="relative w-full">
         <ChatInput 
-          value={input} 
           suggestionListId={suggestionListId}
           activeSuggestionIndex={activeSuggestionIndex}
           showExpandedChatInput={showExpandedChatInput}
+          setShowExpandedChatInput={setShowExpandedChatInput}
           showChatWhenCollapsed={showChatWhenCollapsed}
           searchSuggestions={searchSuggestions}
           onChange={(e) => {
@@ -167,7 +166,7 @@ export default function Home() {
               if (e.key == "Enter" && (e.ctrlKey || e.metaKey)){
                 e.preventDefault();
                 console.log("sending message")
-                chatInputSubmit(undefined, true);
+                chatInputSubmit(input, true);
                 return;
               }
               if (!showExpandedChatInput && searchSuggestions.length > 0){
@@ -201,11 +200,11 @@ export default function Home() {
               }
             if (e.key == "Enter" && !e.shiftKey) {
               e.preventDefault();
-              chatInputSubmit();
+              chatInputSubmit(input);
             }
           }}
           onSubmitClick={()=>{
-            chatInputSubmit();
+            chatInputSubmit(input);
           }}
           onClick={()=>{
             setShowSearchSuggestions(true);

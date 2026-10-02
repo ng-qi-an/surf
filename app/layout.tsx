@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ChatList from "@/components/chat/ChatList";
 import { AnimatePresence } from "motion/react";
+import ChatProvider from "@/components/providers/chat-provider";
+import { Toaster } from "@/components/ui/toast";
 
 
 const inter = Inter({
@@ -42,12 +44,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           disableTransitionOnChange
         >
           <TooltipProvider>
-            <div className="flex absolute top-0 left-0 z-10 w-screen h-screen">
-              <AnimatePresence>
-                <ChatList key="e"/>
-                {children}
-              </AnimatePresence>
-            </div>
+            <ChatProvider>
+              <div className="flex absolute top-0 left-0 z-10 w-screen h-screen">
+                <AnimatePresence>
+                  <ChatList key="chatList"/>
+                  {children}
+                </AnimatePresence>
+              </div>
+              <Toaster/>
+            </ChatProvider>
           </TooltipProvider>
         </ThemeProvider>
       </body>

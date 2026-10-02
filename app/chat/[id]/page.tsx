@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/message-scroller"
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Streamdown } from "streamdown";
-import { DefaultChatTransport, UIMessage } from "ai";
+import { DefaultChatTransport, FileUIPart, UIMessage } from "ai";
 import { Marker, MarkerContent, MarkerIcon } from "@/components/ui/marker";
 import { Spinner } from "@/components/ui/spinner";
-import { Check, ChevronDown, Copy, Globe, Info, RefreshCcw } from "lucide-react";
+import { Check, ChevronDown, Copy, ExternalLink, FileIcon, Globe, Info, RefreshCcw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import SearchResult from "@/components/chat/SearchResult";
 import updateChatMessages from "@/lib/actions/updateChatMessages";
@@ -29,6 +29,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import generateChatName from "@/lib/actions/generateChatName";
 import SoftAurora from "@/components/backgrounds/SoftAurora";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { useChatContext } from "@/components/providers/chat-provider";
+import { Attachment, AttachmentAction, AttachmentActions, AttachmentContent, AttachmentDescription, AttachmentGroup, AttachmentMedia, AttachmentTitle } from "@/components/ui/attachment";
+import { allowedFileTypes, mimeToReadable } from "@/lib/types";
 const demoChat = createChat()
   .user(
     "I'm building a chat for our app and the scroll behavior is driving me nuts. Every time the AI streams a reply, the whole thread jumps around."
@@ -64,7 +67,7 @@ const dummyTransport = demoChat.transport()
 export default function ChatPage(){
     const [loading, setLoading] = useState(true);
     const [chat, setChat] = useState<ChatType | null>(null);
-    const [value, setValue] = useState("");
+    const {input, setInput, attachments, setAttachments, uploadingFiles} = useChatContext();
     const { id: chatId } = useParams();
     const router = useRouter();
     const { messages, setMessages, sendMessage, status, stop, regenerate } = useChat({
@@ -89,20 +92,27 @@ export default function ChatPage(){
                 return;
             }
             setChat(chat);
+            console.log("Loaded chat:", chat);
             setMessages(chat.messages);
-            if (params.get("q")) {
-                console.log("Sending message from query param:", params.get("q"))
-                const newQuery = params.get("q") as string;
+            if (params.get("newChat") && (input || attachments.length > 0)) {
                 router.replace(`/chat/${chatId}`, { scroll: false });
-                sendMessage({text: newQuery});
-                generateChatName({query: newQuery, chatId: chatId as string});
+                onInputSubmit(input);
+                generateChatName({query: input || "New Chat", chatId: chatId as string});
             }
             setLoading(false);
         })();
     }, [])
     function onInputSubmit(query: string) {
-        sendMessage({text: query});
-        setValue("");
+        if (uploadingFiles || (!query.trim() && attachments.length == 0)) return;
+        const fileList: FileUIPart[] = attachments.map((attachment) => ({
+            type: "file",
+            filename: attachment.fileName,
+            mediaType: attachment.contentType,
+            url: attachment.url,
+        }));
+        sendMessage({text: query, files: fileList});
+        setInput("");
+        setAttachments([]);
     }
     return !loading && <div className="w-full h-screen flex flex-col max-h-screen! overflow-hidden items-center px-4 relative">
         <AnimatePresence>
@@ -141,6 +151,25 @@ export default function ChatPage(){
                                     >
                                         <Message align={message.role === "user" ? "end" : "start"}>
                                             <MessageContent>
+                                                {/* add attachments here later */}
+                                                {message.role == "user" && message.parts.filter((part) => part.type === "file").map((part, index)=> {
+                                                    return <Attachment key={(part as FileUIPart).url}>
+                                                        <AttachmentMedia variant={allowedFileTypes.images.includes((part as FileUIPart).mediaType) ? "image" : "icon"}>
+                                                            {allowedFileTypes.images.includes((part as FileUIPart).mediaType) ?
+                                                                <img src={(part as FileUIPart).url}/>
+                                                            : <FileIcon className="size-4"/>}
+                                                        </AttachmentMedia>
+                                                        <AttachmentContent>
+                                                            <AttachmentTitle>{(part as FileUIPart).filename}</AttachmentTitle>
+                                                            <AttachmentDescription>{mimeToReadable((part as FileUIPart).mediaType)}</AttachmentDescription>
+                                                        </AttachmentContent>
+                                                        <AttachmentActions>
+                                                            <AttachmentAction onClick={()=> window.open((part as FileUIPart).url, "_blank")}>
+                                                                <ExternalLink className="size-4"/>
+                                                            </AttachmentAction>
+                                                        </AttachmentActions>
+                                                    </Attachment>
+                                                })}
                                                 <Bubble variant={message.role === "user" ? "muted" : "ghost"} className={message.role == "assistant" ? "w-full" : ""}>
                                                     <BubbleContent className="flex flex-col gap-6 w-full">
                                                             {message.role == "user" ? 
@@ -150,7 +179,7 @@ export default function ChatPage(){
                                                                     return <Streamdown key={message.id+index} className="typeset-chat typeset w-full" animated isAnimating={mIdx == messages.length - 1 && index == message.parts.length - 1 && isBusy}>
                                                                             {part.text}
                                                                         </Streamdown>
-                                                                } else if (part.type =="tool-webSearch"){
+                                                                } else if (part.type =="tool-searchWeb"){
                                                                     return <SearchResult key={message.id+index} part={part} message={message} index={index}/>
                                                                 }
                                                             })}
@@ -178,7 +207,7 @@ export default function ChatPage(){
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            <p>Used: GLM 5.3-flash</p>
+                                                            <p>Used: Deepseek V4.1 Flash</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                     {mIdx == messages.length - 1 && <Tooltip>
@@ -205,24 +234,23 @@ export default function ChatPage(){
             <ChatInput 
                 showExpandedChatInput={true}
                 showChatWhenCollapsed={false}
-                value={value}
                 disabled={status == "submitted"}
                 loading={isBusy}
                 showStop={status == "streaming"}
-                onChange={(e)=> setValue(e.target.value)}
+                onChange={(e)=> setInput(e.target.value)}
                 onKeyDown={(e)=>{
                     if (e.key == "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        if (!isBusy && value) {
-                            onInputSubmit(value);
+                        if (!isBusy && input) {
+                            onInputSubmit(input);
                         }
                     }
                 }}
                 onSubmitClick={()=>{
                     if (isBusy) {
                         stop()
-                    } else if (value && !isBusy) {
-                        onInputSubmit(value);
+                    } else if (input && !isBusy) {
+                        onInputSubmit(input);
                     }
                 }}
             />
