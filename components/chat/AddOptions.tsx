@@ -39,6 +39,7 @@ export default function AddOptions() {
             console.log("Uploaded files:", data.files);
         } catch (error) {
             console.error("Error uploading files:", error);
+            setAttachments(attachments.map((attachment) => attachment.status == "uploading" ? {...attachment, status: "failed" as const} : attachment));
             toast.add({
                 title: "Error uploading files",
                 description: "There was an error uploading your files. Please try again.",
