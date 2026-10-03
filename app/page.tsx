@@ -12,6 +12,7 @@ import { getRandomWelcomeText } from "@/lib/welcomeTexts";
 import { useChatContext } from "@/components/providers/chat-provider";
 import { useTheme } from "next-themes";
 import GradientWaves from "@/components/backgrounds/GradientWaves";
+import HomeGrid from "@/components/HomeGrid";
 
 export default function Home() {
   const { input, setInput, attachments, uploadingFiles } = useChatContext();
@@ -269,6 +270,7 @@ export default function Home() {
               ))}
         </div>}
       </motion.div>
+      <HomeGrid/>
     </div>
   </motion.div>
   <div className="absolute bottom-4 right-4 z-10 opacity-50 hover:opacity-100 overflow-auto">
