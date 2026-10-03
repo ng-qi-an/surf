@@ -10,6 +10,8 @@ import createChat from "@/lib/actions/createChat";
 import ChatInput from "@/components/chat/ChatInput";
 import { getRandomWelcomeText } from "@/lib/welcomeTexts";
 import { useChatContext } from "@/components/providers/chat-provider";
+import { useTheme } from "next-themes";
+import GradientWaves from "@/components/backgrounds/GradientWaves";
 
 export default function Home() {
   const { input, setInput, attachments, uploadingFiles } = useChatContext();
@@ -22,6 +24,7 @@ export default function Home() {
   const [showChatWhenCollapsed, setShowChatWhenCollapsed] = useState(false);
   const [quote, setQuote] = useState<any | null>(null);
   const [welcome, setWelcome] = useState("");
+  const { resolvedTheme } = useTheme();
   const router = useRouter();
   async function chatInputSubmit(query: string, forceChat?: boolean) {
     if (!forceChat && !showExpandedChatInput) {
@@ -85,6 +88,7 @@ export default function Home() {
     }
   return <> 
   <div className="w-screen h-screen absolute z-0 top-0 left-0">
+    {resolvedTheme == "dark" ? 
     <SideRays
       speed={2.5}
       rayColor1="#EAB308"
@@ -99,6 +103,29 @@ export default function Home() {
       falloff={1.6}
       opacity={1}
     />
+    :  <GradientWaves
+      horizonColor="#3b82f6"
+      waveColor="#8b5cf6"
+      crestColor="#3b82f6"      
+      speed={0.3}
+      amplitude={2.5}
+      waveScale={0.5}
+      waveRatio={0.9}
+      swell={35}
+      turbulence={23}
+      tilt={1.11}
+      zoom={1}
+      height={5.5}
+      fogDepth={15}
+      detail="medium"
+      brightness={0.85}
+      opacity={1}
+      grain
+      grainIntensity={0.025}
+      mouseInteraction
+      parallaxStrength={0.6}
+      className="opacity-40"
+    />}
   </div>
   <motion.div layout key="homePage" className="min-w-0 flex-1 h-screen flex flex-col items-center justify-center overflow-auto">
     <div className="flex flex-col items-center w-full max-w-[500px] relative">
@@ -125,7 +152,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1}}
             exit={{ opacity: 0 }}
-            className={`text-sm text-muted-foreground/50 mb-6`}>
+            className={`text-sm text-foreground/50 mb-6`}>
             Ctrl+Enter for chat. Shift+Enter for new line.
           </motion.p>
         : quote ? <motion.p
@@ -133,7 +160,7 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1}}
           exit={{ opacity: 0 }}
-          className={`text-sm text-muted-foreground/50 mb-6 text-center line-clamp-1 hover:line-clamp-none`}>
+          className={`text-sm text-foreground/50 mb-6 text-center line-clamp-1 hover:line-clamp-none`}>
           "{quote.quote || "."}" - {quote.author}
         </motion.p> : <p className="h-5 mb-6"></p>}
       </AnimatePresence>

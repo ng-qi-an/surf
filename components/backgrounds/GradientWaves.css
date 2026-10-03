@@ -1,0 +1,7 @@
+.gradient-waves-container {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  margin-top: 30vh;
+  overflow: hidden;
+}

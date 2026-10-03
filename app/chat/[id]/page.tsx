@@ -32,6 +32,8 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useChatContext } from "@/components/providers/chat-provider";
 import { Attachment, AttachmentAction, AttachmentActions, AttachmentContent, AttachmentDescription, AttachmentGroup, AttachmentMedia, AttachmentTitle } from "@/components/ui/attachment";
 import { allowedFileTypes, mimeToReadable } from "@/lib/types";
+import { useTheme } from "next-themes";
+import MicroSlats from "@/components/MicroSlats";
 const demoChat = createChat()
   .user(
     "I'm building a chat for our app and the scroll behavior is driving me nuts. Every time the AI streams a reply, the whole thread jumps around."
@@ -114,9 +116,10 @@ export default function ChatPage(){
         setInput("");
         setAttachments([]);
     }
+    const { resolvedTheme } = useTheme();
     return !loading && <div className="w-full h-screen flex flex-col max-h-screen! overflow-hidden items-center px-4 relative">
-        <AnimatePresence>
-            {isBusy && <motion.div initial={{bottom: "-500px"}} animate={{bottom:"-250px"}} exit={{bottom: "-500px"}} transition={{duration: 0.3, delay: 0.2}} className="absolute h-[500px] -bottom-[250px] w-screen -z-10 blur-lg pointer-events-none">
+        <AnimatePresence mode="wait">
+            {isBusy && (resolvedTheme == "dark" ? <motion.div key="darkChatBackground" initial={{bottom: "-500px"}} animate={{bottom:"-250px"}} exit={{bottom: "-500px"}} transition={{duration: 0.3, delay: 0.2}} className="absolute h-[500px] -bottom-[250px] w-screen -z-10 blur-lg opacity-50 pointer-events-none">
                 <SoftAurora 
                     speed={1.9}
                     scale={1.5}
@@ -132,7 +135,37 @@ export default function ChatPage(){
                     colorSpeed={1.6}
                     enableMouseInteraction={false}
                 />
-            </motion.div>}
+            </motion.div>
+            : <motion.div key={"lightChatBackground"} initial={{opacity: 0}} animate={{opacity: status == "streaming" ? 0.25 : 0.7}} exit={{opacity: 0}} transition={{duration: 0.3, delay: 0.2}} className="absolute h-screen w-screen -z-10 pointer-events-none">
+                <MicroSlats
+                    color={resolvedTheme == "light" ? "#fff" : "var(--background)"}
+                    glintColor={resolvedTheme == "light" ? "#93c5fd" : "#172554"}
+                    backgroundColor={resolvedTheme == "light" ? "#fff" : "var(--background)"}
+                    slatWidth={17}
+                    slatHeight={19}
+                    gap={4}
+                    roundness={0.45}
+                    speed={2}
+                    scale={1.1}
+                    direction={230}
+                    chop={0}
+                    stretch={0.95}
+                    glint={0.65}
+                    contrast={1.3}
+                    perspective={0.5}
+                    fog={0.45}
+                    interactive={false}
+                    cursorStrength={1}
+                    cursorSize={40}
+                    swirl={0.2}
+                    trail={1.2}
+                    lean={0}
+                    intro={false}
+                    introDuration={2}
+                    paused={false}
+                    className="dark:opacity-70"
+                />
+            </motion.div>)}
         </AnimatePresence>
         <div className="w-full max-w-192 pb-6 pt-2 h-full flex flex-col">
             <div className="absolute bottom-4 right-4 z-10 opacity-50 hover:opacity-100 overflow-auto">
