@@ -25,6 +25,10 @@ export default function Home() {
   const [quote, setQuote] = useState<any | null>(null);
   const [welcome, setWelcome] = useState("");
   const { resolvedTheme } = useTheme();
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    setLoaded(true);
+  }, []);
   const router = useRouter();
   async function chatInputSubmit(query: string, forceChat?: boolean) {
     if (!forceChat && !showExpandedChatInput) {
@@ -88,22 +92,9 @@ export default function Home() {
     }
   return <> 
   <div className="w-screen h-screen absolute z-0 top-0 left-0">
-    {resolvedTheme == "dark" ? 
-    <SideRays
-      speed={2.5}
-      rayColor1="#EAB308"
-      rayColor2="#96c8ff"
-      intensity={2}
-      spread={2}
-      origin="top-right"
-      className="z-0 absolute top-0 left-0"
-      tilt={0}
-      saturation={1.5}
-      blend={0.75}
-      falloff={1.6}
-      opacity={1}
-    />
-    :  <GradientWaves
+    {loaded && (resolvedTheme == "light" ? 
+    <GradientWaves
+      key="lighthomebackground"
       horizonColor="#3b82f6"
       waveColor="#8b5cf6"
       crestColor="#3b82f6"      
@@ -125,7 +116,23 @@ export default function Home() {
       mouseInteraction
       parallaxStrength={0.6}
       className="opacity-40"
-    />}
+    />
+    :
+    <SideRays
+      key="darkhomebackground"
+      speed={2.5}
+      rayColor1="#EAB308"
+      rayColor2="#96c8ff"
+      intensity={2}
+      spread={2}
+      origin="top-right"
+      className="z-0 absolute top-0 left-0"
+      tilt={0}
+      saturation={1.5}
+      blend={0.75}
+      falloff={1.6}
+      opacity={1}
+    />)}
   </div>
   <motion.div layout key="homePage" className="min-w-0 flex-1 h-screen flex flex-col items-center justify-center overflow-auto">
     <div className="flex flex-col items-center w-full max-w-[500px] relative">
