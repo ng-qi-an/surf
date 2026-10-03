@@ -26,3 +26,13 @@ export function mimeToReadable(mime: string) {
   if (parts[0] === "image") return parts[1].toUpperCase() + " Image";
   if (parts[0] === "text" || parts[0] === 'application') return parts[1].toUpperCase() + " File";
 }
+
+export type GridItemType = {
+  name: string;
+  id: string;
+  icon?: string;
+  image?: string;
+  type: "websiteShortcut" | "folder";
+  url?: string;
+  nestedItems?: GridItemType[];
+}

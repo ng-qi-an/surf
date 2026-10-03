@@ -12,7 +12,7 @@ import { getRandomWelcomeText } from "@/lib/welcomeTexts";
 import { useChatContext } from "@/components/providers/chat-provider";
 import { useTheme } from "next-themes";
 import GradientWaves from "@/components/backgrounds/GradientWaves";
-import HomeGrid from "@/components/HomeGrid";
+import HomeGrid from "@/components/homeGrid/HomeGrid";
 
 export default function Home() {
   const { input, setInput, attachments, uploadingFiles } = useChatContext();
