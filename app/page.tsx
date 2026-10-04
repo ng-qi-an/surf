@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, stagger } from "motion/react";
 import { useRouter } from "next/navigation";
-import createChat from "@/lib/actions/createChat";
+import createChat from "@/lib/actions/chat/createChat";
 import ChatInput from "@/components/chat/ChatInput";
 import { getRandomWelcomeText } from "@/lib/welcomeTexts";
 import { useChatContext } from "@/components/providers/chat-provider";

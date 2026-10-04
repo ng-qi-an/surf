@@ -7,9 +7,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import ChatRenameDialog from "../dialogs/ChatRenameDIalog";
 import { useState } from "react";
-import renameChat from "@/lib/actions/renameChat";
+import renameChat from "@/lib/actions/chat/renameChat";
 import ChatDeleteDialog from "../dialogs/ChatDeleteDialog";
-import deleteChat from "@/lib/actions/deleteChat";
+import deleteChat from "@/lib/actions/chat/deleteChat";
 export default function ChatListItem({ chat }: { chat: ChatType }) {
     const item = {
         hidden: { y: 10, opacity: 0 },

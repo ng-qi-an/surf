@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion, stagger } from "motion/react";
 import { Button } from "../ui/button";
 import { MessageCirclePlus, PanelLeft, PanelLeftOpen, PanelRight, PanelRightOpen } from "lucide-react";

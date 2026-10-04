@@ -1,16 +1,17 @@
 import { useSortable } from '@dnd-kit/react/sortable';
 import { motion, useMotionValue, useSpring } from 'motion/react';
 import { useRef } from 'react';
+import GridCardProvider from '../providers/grid-card-provider';
 
 const springValues = {
     damping: 30,
     stiffness: 400,
     mass: 1
 };
-const amp = 0.7;
+const amp = 0.5;
 
 export default function HomeGridCard({ id, index, children }: { id: string; index: number, children: React.ReactNode }) {
-    const { ref: dragRef } = useSortable({ id, index });
+    const { ref: dragRef, isDragging } = useSortable({ id, index });
     const itemRef = useRef<HTMLDivElement>(null);
     const rotateX = useSpring(useMotionValue(0), springValues);
     const rotateY = useSpring(useMotionValue(0), springValues);
@@ -33,11 +34,15 @@ export default function HomeGridCard({ id, index, children }: { id: string; inde
         rotateX.set(0);
         rotateY.set(0);
     }
-    return (
+    function handleMouseDown(){
+        scale.set(0.97);
+    }
+    return <GridCardProvider isDragging={isDragging}>
         <div ref={dragRef}>
             <div
                 ref={itemRef}
                 onMouseMove={handleMouse}
+                onMouseDown={handleMouseDown}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 style={{ perspective: 800 }}
@@ -55,5 +60,5 @@ export default function HomeGridCard({ id, index, children }: { id: string; inde
                 </motion.div>
             </div>
         </div>
-    );
+    </GridCardProvider>;
 }

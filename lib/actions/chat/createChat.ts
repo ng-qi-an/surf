@@ -1,5 +1,5 @@
 import { generateId } from "ai";
-import { db } from "../db";
+import { db } from "../../db";
 
 export default async function createChat(){
     const id =  await db.chats.add({

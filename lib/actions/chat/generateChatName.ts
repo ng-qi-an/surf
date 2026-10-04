@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../../db";
 
 export default async function generateChatName({query, chatId}: {query: string, chatId: string}) {
     try {

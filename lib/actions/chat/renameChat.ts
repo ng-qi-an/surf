@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../../db";
 
 export default function renameChat(chatId: string, newName: string){
     return db.chats.update(chatId, {

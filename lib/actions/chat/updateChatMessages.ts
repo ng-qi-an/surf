@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../../db";
 
 export default async function updateChatMessages(id: string, messages: any[]){
     const newId = await db.chats.update(id, {
