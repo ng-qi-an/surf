@@ -15,6 +15,7 @@ interface ChatType {
 interface GridItemType {
   id: string;
   name: string;
+  position?: number;
   updatedAt: Date;
   icon?: string;
   image?: string;
@@ -32,6 +33,15 @@ db.version(1).stores({
   chats: "id, name",
   grid: "id, name, type, updatedAt"
 })
+
+db.version(2).stores({
+  chats: "id, name",
+  grid: "id, name, type, updatedAt, position"
+}).upgrade((transaction) =>
+  transaction.table("grid").toCollection().modify((item, index) => {
+    item.position = index;
+  })
+)
 
 export type { ChatType, GridItemType }
 export { db }

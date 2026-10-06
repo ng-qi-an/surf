@@ -1,7 +1,8 @@
 import { useSortable } from '@dnd-kit/react/sortable';
 import { motion, useMotionValue, useSpring } from 'motion/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import GridCardProvider from '../providers/grid-card-provider';
+import { GridItemType } from '@/lib/db';
 
 const springValues = {
     damping: 30,
@@ -10,8 +11,9 @@ const springValues = {
 };
 const amp = 0.5;
 
-export default function HomeGridCard({ id, index, children }: { id: string; index: number, children: React.ReactNode }) {
+export default function HomeGridCard({ id, index, items, setItems, children }: { id: string; index: number, items: GridItemType[], setItems: React.Dispatch<React.SetStateAction<GridItemType[]>>, children: React.ReactNode }) {
     const { ref: dragRef, isDragging } = useSortable({ id, index });
+    const [enableEffect, setEnableEffect] = useState(true);
     const itemRef = useRef<HTMLDivElement>(null);
     const rotateX = useSpring(useMotionValue(0), springValues);
     const rotateY = useSpring(useMotionValue(0), springValues);
@@ -37,23 +39,27 @@ export default function HomeGridCard({ id, index, children }: { id: string; inde
     function handleMouseDown(){
         scale.set(0.97);
     }
-    return <GridCardProvider isDragging={isDragging}>
+    function handleMouseUp(){
+        scale.set(1.03);
+    }
+    return <GridCardProvider items={items} setItems={setItems} isDragging={isDragging} enableEffect={enableEffect} setEnableEffect={setEnableEffect}>
         <div ref={dragRef}>
             <div
                 ref={itemRef}
                 onMouseMove={handleMouse}
                 onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 style={{ perspective: 800 }}
             >
                 <motion.div
-                    style={{
+                    style={enableEffect ? {
                         rotateX,
                         rotateY,
                         scale,
                         transformStyle: 'preserve-3d'
-                    }}
+                    } : {scale}}
                     className="w-full min-w-30 h-30 flex items-center justify-center"
                 >
                     {children}
