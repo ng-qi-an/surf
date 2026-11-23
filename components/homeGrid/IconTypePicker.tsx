@@ -12,6 +12,7 @@ export default function IconTypePicker({value, onChange, options}: {value: strin
         {options.map((option) => (
             <button
                 key={option.value}
+                type="button"
                 onClick={() => onChange(option.value)}
                 className={`py-2 pl-2 pr-3 relative rounded-full flex items-center gap-2 text-sm ${value === option.value ? 'text-primary-foreground' : 'text-secondary-foreground hover:bg-input'}`}
             >

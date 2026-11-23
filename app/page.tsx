@@ -135,7 +135,8 @@ export default function Home() {
       opacity={1}
     />)}
   </div>
-  <motion.div layout key="homePage" className="min-w-0 flex-1 h-screen flex flex-col items-center justify-center overflow-auto">
+  <motion.div layout key="homePage" className="min-w-0 flex-1 h-screen flex flex-col items-center overflow-auto">
+    <div className="h-[35vh] shrink-0"/>
     <div className="flex flex-col items-center w-full max-w-[500px] relative">
       <motion.h1                     
         initial="hidden"

@@ -106,7 +106,7 @@ export default function AddGridItemButton({items, setItems}: {items: GridItemTyp
                                 <motion.div key="closeMenu" initial={{y: 20, opacity: 0}} animate={{y: 0, opacity: 1}} exit={{y: 20, opacity: 0}} className={`flex gap-1 items-center justify-center absolute top-0 left-0 h-8 w-full`}>
                                     <ChevronDown/>
                                 </motion.div>
-                            : <motion.div initial={{y: -20, opacity: 0}} animate={{y: 0, opacity: 1}} exit={{y: -20, opacity: 0}} key="openMenu" className={`flex gap-1 items-center justify-center absolute top-0 left-0 h-8 w-full`}>
+                            : <motion.div initial={{y: -20, opacity: 0}} animate={{y: 0, opacity: 1}} exit={{y: -20, opacity: 0}} key="openMenu" className={`flex gap-1 items-center justify-center absolute top-0 left-0 h-8 w-full text-muted-foreground hover:text-foreground transition-colors`}>
                                 <Plus/> Add item
                             </motion.div>}
                         </AnimatePresence>

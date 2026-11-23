@@ -18,13 +18,13 @@ interface GridItemType {
   position?: number;
   updatedAt: Date;
   icon?: string;
-  image?: string;
+  iconType: "url" | "image" | "icon";
   type: "websiteShortcut" | "folder";
   url?: string;
   nestedItems?: GridItemType[];
 }
 
-const db = new Dexie("ChatsDatabase") as Dexie & {
+const db = new Dexie("SurfDatabase") as Dexie & {
   chats: EntityTable<ChatType, "id">
   grid: EntityTable<GridItemType, "id">
 }
@@ -34,7 +34,7 @@ db.version(1).stores({
   grid: "id, name, type, updatedAt"
 })
 
-db.version(2).stores({
+db.version(3).stores({
   chats: "id, name",
   grid: "id, name, type, updatedAt, position"
 }).upgrade((transaction) =>

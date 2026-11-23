@@ -11,6 +11,7 @@ export default function HomeGrid(){
     const [items, setItems] = useState<GridItemType[]>([]);
     useEffect(()=>{
         (async()=>{
+            console.log("Fetching items from database")
             const fetchedItems = await db.grid.orderBy("position").toArray()
             setItems(fetchedItems)
         })();
@@ -34,7 +35,7 @@ export default function HomeGrid(){
             >
                 {items.map((item, index) => {
                     return <HomeGridCard key={item.id} id={`item-${item.id}`} index={index} items={items} setItems={setItems}>
-                        {item.type == "websiteShortcut" && <WebsiteShortcut id={item.id} name={item.name} url={item.url} image={item.image} />}
+                        {item.type == "websiteShortcut" && <WebsiteShortcut id={item.id} name={item.name} url={item.url} icon={item.icon || null} iconType={item.iconType} />}
                     </HomeGridCard>
                 })}
             </DragDropProvider>

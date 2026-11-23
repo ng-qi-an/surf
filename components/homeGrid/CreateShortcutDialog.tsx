@@ -6,34 +6,44 @@ import { Input } from "../ui/input";
 import { useEffect, useState } from "react";
 import ShortcutIcon from "./ShortcutIcon";
 import IconTypePicker from "./IconTypePicker";
+import addGridItem from "@/lib/actions/grid/addGridItem";
+import { generateId } from "ai";
+import SearchIconGrid from "./SearchIconGrid";
+import { IconName } from "lucide-react/dynamic";
 
 export default function CreateShortcutDialog({setItems, setShowCreateShortcut, expandIconDialog, setExpandIconDialog}:{setItems: React.Dispatch<React.SetStateAction<GridItemType[]>>; setShowCreateShortcut: React.Dispatch<React.SetStateAction<boolean>>; expandIconDialog: boolean; setExpandIconDialog: React.Dispatch<React.SetStateAction<boolean>>}){
     const [name, setName] = useState("")
     const [website, setWebsite] = useState("")
     const [icon, setIcon] = useState("")
     const [iconType, setIconType] = useState<"url" | "image" | "icon">("url")
+    const [searchIcon, setSearchIcon] = useState("")
     const [websiteChangeTimeout, setWebsiteChangeTimeout] = useState<NodeJS.Timeout | null>(null)
     useEffect(()=>{
-        if (website){
-            if (websiteChangeTimeout) clearTimeout(websiteChangeTimeout)
-            const timeout = setTimeout(()=>{
-                try {
-                    const websiteUrl = new URL(website)
-                    setIcon(`https://a.favicon.im/${websiteUrl.hostname}?larger=true`)
-                } catch (e){
-                    setIcon("")
-                }
-            }, 500)
-            setWebsiteChangeTimeout(timeout)
-        } else {
-            setIcon("")
+        if (websiteChangeTimeout) clearTimeout(websiteChangeTimeout)
+        if (iconType == "url"){
+            if (website){
+                const timeout = setTimeout(()=>{
+                    try {
+                        const websiteUrl = new URL(website)
+                        setIcon(`https://a.favicon.im/${websiteUrl.hostname}?larger=true`)
+                    } catch (e){
+                        setIcon("")
+                    }
+                }, 500)
+                setWebsiteChangeTimeout(timeout)
+            } else {
+                setIcon("")
+            }
         }
-    }, [website])
+    }, [website, iconType])
+    useEffect(()=>{
+        setIcon("")
+    }, [iconType])
     return <motion.div key="createShortcutDialog" className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
         <div className="flex gap-2 relative">
             {expandIconDialog ? 
             <>
-                <motion.div layoutId="addShortcutButton" animate={{height: iconType == "url" ? 128 : 194, transition: {
+                <motion.div layoutId="addShortcutButton" animate={{height: iconType == "url" ? 128 : iconType == "image" ? 194 : 400, transition: {
                         height: {
                             type: "spring",
                             duration: 0.4,
@@ -51,7 +61,7 @@ export default function CreateShortcutDialog({setItems, setShowCreateShortcut, e
                             <X/>
                         </Button>
                         <motion.div layout className="size-20 shrink-0 bg-input/50 flex items-center justify-center rounded-xl">
-                            <ShortcutIcon icon={icon} setIcon={setIcon} website={website}/>
+                            <ShortcutIcon icon={icon} setIcon={setIcon} iconType={iconType} website={website}/>
                         </motion.div>
                         <motion.div className="flex flex-col w-full gap-1 ml-3">
                             <label className="text-sm opacity-90 mb-1">Icon type</label>
@@ -66,15 +76,19 @@ export default function CreateShortcutDialog({setItems, setShowCreateShortcut, e
                     <AnimatePresence mode="wait">
                         {iconType == "image" ? <motion.div key="shortcutsImageUpload" initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: 10}}>
                             <label htmlFor="shortcutImageUpload" className="mt-2 text-sm opacity-90 mb-1">Upload image</label>
-                            <Input required id="shortcutImageUpload" value={name} onChange={(e) => setName(e.target.value)} placeholder="New Shortcut" type="file" className="w-full mt-1"/>
-                        </motion.div> : iconType == "icon" ? <motion.div key="shortcutsIconPicker" initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: 10}}>
-                            <label htmlFor="shortcutImageUpload" className="mt-2 text-sm opacity-90 mb-1">Upload image</label>
-                            <Input required id="shortcutImageUpload" value={name} onChange={(e) => setName(e.target.value)} placeholder="New Shortcut" type="file" className="w-full mt-1"/>
+                            <Input required id="shortcutImageUpload" onChange={(e) => {
+                                
+                            }} placeholder="New Shortcut" type="file" className="w-full mt-1"/>
+                        </motion.div> : iconType == "icon" ? <motion.div key="shortcutsIconPicker" initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: 10}} className="min-h-0 flex-1 flex flex-col">
+                            <Input value={searchIcon} onChange={(e)=> setSearchIcon(e.target.value)} placeholder="Search icons" className="w-full mt-4 mb-2"/>
+                            <SearchIconGrid selectedIcon={icon as IconName} onSelect={setIcon} query={searchIcon} className="overflow-auto min-h-0"/>
                         </motion.div> : null}
                     </AnimatePresence>
                 </motion.div>
                 {/** expand dialog own background */}
-                <motion.div onClick={()=> setExpandIconDialog(false)} initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="absolute top-0 left-0 z-40 h-full w-full bg-background/80"/>
+                <motion.div onClick={()=> {
+                    setExpandIconDialog(false)
+                }} initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="absolute top-0 left-0 z-40 h-full w-full bg-background/80"/>
             </>
             :
             <motion.div onClick={()=> setExpandIconDialog(true)} layoutId="addShortcutButton" exit={{x: 100, opacity: 0, transition: {opacity: {duration: 0.1}}}} transition={{layout: {
@@ -87,14 +101,22 @@ export default function CreateShortcutDialog({setItems, setShowCreateShortcut, e
                     bounce: 0.2,
                 }}}} 
                 className="absolute top-2 z-40 left-0 size-16 rounded-xl bg-secondary cursor-pointer flex items-center justify-center">
-                <ShortcutIcon icon={icon} setIcon={setIcon} website={website}/>
+                <ShortcutIcon icon={icon} setIcon={setIcon} iconType={iconType} website={website}/>
             </motion.div>}
             <div className="w-16"/>
             <motion.form initial={{x: -50, y: -20, opacity: 0, scale: 0.8}} animate={{y: 0, x: 0, opacity: 1, scale: expandIconDialog ? 1 : 1, transition: {delay: 0.06}}} exit={{y: 5, opacity: 0, scale: 0.9, transition: {opacity: {duration: 0.15}}}}  className="z-30 flex flex-col gap-1 bg-card p-4 rounded-xl"
-                onSubmit={(e)=>{
+                onSubmit={async(e)=>{
                     e.preventDefault();
                     setShowCreateShortcut(false)
-
+                    setItems(await addGridItem({
+                        id: generateId(),
+                        name: name || "New Shortcut",
+                        type: "websiteShortcut",
+                        url: website,
+                        icon: icon,
+                        iconType: iconType,
+                        updatedAt: new Date(),
+                    }))
                 }}
             >
                 <h2 className="mb-2 font-semibold">New Shortcut</h2>

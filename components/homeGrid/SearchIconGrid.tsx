@@ -9,6 +9,7 @@ type SearchIconGridProps = {
     query: string
     selectedIcon: IconName | null
     className?: string
+    columns?: number
     onSelect?: (iconName: IconName) => void
 }
 
@@ -69,7 +70,7 @@ function fuzzyScore(name: string, query: string): number {
     return score - name.length / 100
 }
 
-export default function SearchIconGrid({ query, className, selectedIcon, onSelect }: SearchIconGridProps) {
+export default function SearchIconGrid({ query, className, selectedIcon, columns = 6, onSelect }: SearchIconGridProps) {
     const deferredQuery = useDeferredValue(query)
     const loadMoreRef = useRef<HTMLDivElement>(null)
     const [iconCount, setIconCount] = useState(INITIAL_ICON_COUNT)
@@ -107,7 +108,7 @@ export default function SearchIconGrid({ query, className, selectedIcon, onSelec
     }, [iconCount, normalizedQuery])
 
     return (
-        <div className={cn("grid grid-cols-6 gap-1", className)}>
+        <div className={cn("grid gap-1", className)} style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
             {iconsToRender.map(({ name }) => (
                 <Button
                     key={name}
@@ -122,7 +123,7 @@ export default function SearchIconGrid({ query, className, selectedIcon, onSelec
                 </Button>
             ))}
             {!normalizedQuery && iconCount < iconNames.length && (
-                <div ref={loadMoreRef} className="col-span-6 h-1" aria-hidden="true" />
+                <div ref={loadMoreRef} className="h-1" style={{ gridColumn: "1 / -1" }} aria-hidden="true" />
             )}
         </div>
     )
