@@ -3,6 +3,7 @@ import { motion, useMotionValue, useSpring } from 'motion/react';
 import { useRef, useState } from 'react';
 import GridCardProvider from '../providers/grid-card-provider';
 import { GridItemType } from '@/lib/db';
+import EditShortcutDialog from './EditShortcutDialog';
 
 const springValues = {
     damping: 30,
@@ -14,6 +15,7 @@ const amp = 0.5;
 export default function HomeGridCard({ id, index, items, setItems, children }: { id: string; index: number, items: GridItemType[], setItems: React.Dispatch<React.SetStateAction<GridItemType[]>>, children: React.ReactNode }) {
     const { ref: dragRef, isDragging } = useSortable({ id, index });
     const [enableEffect, setEnableEffect] = useState(true);
+    const [showEditDialog, setShowEditDialog] = useState(false);
     const itemRef = useRef<HTMLDivElement>(null);
     const rotateX = useSpring(useMotionValue(0), springValues);
     const rotateY = useSpring(useMotionValue(0), springValues);
@@ -42,7 +44,8 @@ export default function HomeGridCard({ id, index, items, setItems, children }: {
     function handleMouseUp(){
         scale.set(1.03);
     }
-    return <GridCardProvider items={items} setItems={setItems} isDragging={isDragging} enableEffect={enableEffect} setEnableEffect={setEnableEffect}>
+    return <GridCardProvider items={items} setItems={setItems} isDragging={isDragging} enableEffect={enableEffect} setEnableEffect={setEnableEffect} setShowEditDialog={setShowEditDialog}>
+        <EditShortcutDialog setItems={setItems} showEditShortcut={showEditDialog} setShowEditShortcut={setShowEditDialog} shortcut={items[index]}/>
         <div ref={dragRef}>
             <div
                 ref={itemRef}

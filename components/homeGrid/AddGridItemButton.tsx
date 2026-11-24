@@ -1,11 +1,8 @@
 import { GridItemType } from "@/lib/db"
 import { Button } from "../ui/button"
-import addGridItem from "@/lib/actions/grid/addGridItem"
-import { toast } from "../ui/toast"
-import { ChevronDown, FolderPlus, Plus, Square, SquareDashedPlus, SquarePlus } from "lucide-react"
+import { ChevronDown, FolderPlus, Plus, SquareDashedPlus } from "lucide-react"
 import { useState } from "react"
 import { AnimatePresence, motion, stagger } from "motion/react" 
-import { Input } from "../ui/input"
 import CreateShortcutDialog from "./CreateShortcutDialog"
 import CreateFolderDialog from "./CreateFolderDialog"
 export default function AddGridItemButton({items, setItems}: {items: GridItemType[], setItems: React.Dispatch<React.SetStateAction<GridItemType[]>>}) {

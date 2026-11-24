@@ -9,6 +9,7 @@ import SearchIconGrid from "./SearchIconGrid";
 import { DynamicIcon, iconNames, type IconName } from "lucide-react/dynamic";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { cn } from "@/lib/utils";
+import { toast } from "../ui/toast";
 
 export default function CreateFolderDialog({setItems, setShowCreateFolder, showFolderIconPicker, setShowFolderIconPicker}:{setItems: React.Dispatch<React.SetStateAction<GridItemType[]>>; setShowCreateFolder: React.Dispatch<React.SetStateAction<boolean>>; showFolderIconPicker: boolean; setShowFolderIconPicker: React.Dispatch<React.SetStateAction<boolean>>}){
     const [name, setName] = useState("")
@@ -77,6 +78,11 @@ export default function CreateFolderDialog({setItems, setShowCreateFolder, showF
                 onSubmit={(e)=>{
                     e.preventDefault();
                     setShowCreateFolder(false)
+                    toast.add({
+                        title: "Coming soon!",
+                        description: "Folders will come in a later update.",
+                        type: "info"
+                    })
                 }}
             >
                 <h2 className="mb-2 font-semibold">New Folder</h2>
