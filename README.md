@@ -20,7 +20,8 @@ When you upload files, or ask longer more complex questions, you'll transform in
 **Chat** works like any typical chat app, but with a *search tool* to keep up to date. The model can search the web anytime during it's response, giving more **accurate results** (as if you were to search it up yourself) while making answers **targetted** and concise.
 
 See a demo below:
-[Insert demo vid later]
+
+https://github.com/user-attachments/assets/cd1fb6fe-6bda-4584-9851-b34d59d7da83
 
 The chat page also has some ***sweet*** animations that change depending if you're on dark or light mode (ugh)
 
