@@ -6,6 +6,8 @@ import uploadFiles from "@/lib/actions/uploadFiles";
 import { toast } from "../ui/toast";
 import { allowedFileTypesList, ChatAttachment } from "@/lib/types";
 import { useChatContext } from "../providers/chat-provider";
+import { ucdnClient } from "@/ucdnClient";
+import { UnifiedCDNFileJSON } from "unified-cdn-api/types";
 
 export default function AddOptions() {
     const {attachments, setAttachments, uploadingFiles, setUploadingFiles} = useChatContext();
@@ -26,17 +28,20 @@ export default function AddOptions() {
             }))
         ]);
         try {
-            const data = await uploadFiles(formData)
-            setAttachments(attachments.filter((attachment) => attachment.status == "uploaded"));
-            setAttachments([...attachments, ...data.files.map((file: any) => ({
-                fileName: file.fileName,
-                status: file.status == "uploaded" ? "uploaded" : "failed" as const,
-                size: file.size,
-                contentType: file.contentType,
-                url: file.url,
-                createdAt: new Date(file.createdAt)
-            }))]);
-            console.log("Uploaded files:", data.files);
+            const files = Array.from(formData.getAll("files[]")) as File[];
+            const response = await ucdnClient.uploadFiles(files);
+            console.log("Upload response:", response);
+            setAttachments([...attachments, ...files.map((file: File) =>{
+                const uploadedFile = response.uploads.find((uploadedFile: UnifiedCDNFileJSON) => uploadedFile.name === file.name);
+                return {
+                    fileName: file.name,
+                    status: uploadedFile ? "uploaded" as const : "failed" as const,
+                    size: file.size,
+                    contentType: file.type,
+                    url: uploadedFile?.viewUrl || "",
+                    createdAt: new Date()
+                }
+            })]);
         } catch (error) {
             console.error("Error uploading files:", error);
             setAttachments(attachments.map((attachment) => attachment.status == "uploading" ? {...attachment, status: "failed" as const} : attachment));

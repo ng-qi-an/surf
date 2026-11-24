@@ -11,6 +11,8 @@ import { generateId } from "ai";
 import SearchIconGrid from "./SearchIconGrid";
 import { IconName } from "lucide-react/dynamic";
 import saveGridItem from "@/lib/actions/grid/saveGridItem";
+import { toast } from "../ui/toast";
+import { ucdnClient } from "@/ucdnClient";
 
 export default function EditShortcutDialog({setItems, showEditShortcut, setShowEditShortcut, shortcut}: {setItems: React.Dispatch<React.SetStateAction<GridItemType[]>>; showEditShortcut: boolean, setShowEditShortcut: (show: boolean)=> void, shortcut: Pick<GridItemType, "id" | "name" | "url" | "icon" | "iconType">}){
     const [name, setName] = useState(shortcut.name)
@@ -18,6 +20,7 @@ export default function EditShortcutDialog({setItems, showEditShortcut, setShowE
     const [icon, setIcon] = useState(shortcut.icon || "")
     const [iconType, setIconType] = useState<"url" | "image" | "icon">(shortcut.iconType)
     const [searchIcon, setSearchIcon] = useState("")
+    const [editing, setEditing] = useState(false)
     const [expandIconDialog, setExpandIconDialog] = useState(false)
     const [websiteChangeTimeout, setWebsiteChangeTimeout] = useState<NodeJS.Timeout | null>(null)
     useEffect(()=>{
@@ -84,7 +87,16 @@ export default function EditShortcutDialog({setItems, showEditShortcut, setShowE
                             {iconType == "image" ? <motion.div key="shortcutsImageUpload" initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: 10}}>
                                 <label htmlFor="shortcutImageUpload" className="mt-2 text-sm opacity-90 mb-1">Upload image</label>
                                 <Input required id="shortcutImageUpload" onChange={(e) => {
-                                    
+                                    if (e.target.files && e.target.files[0]) {
+                                        const file = e.target.files[0];
+                                        const reader = new FileReader();
+                                        reader.onload = (event) => {
+                                            if (event.target?.result) {
+                                                setIcon(event.target.result as string);
+                                            }
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
                                 }} placeholder="New Shortcut" type="file" className="w-full mt-1"/>
                             </motion.div> : iconType == "icon" ? <motion.div key="shortcutsIconPicker" initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: 10}} className="min-h-0 flex-1 flex flex-col">
                                 <Input value={searchIcon} onChange={(e)=> setSearchIcon(e.target.value)} placeholder="Search icons" className="w-full mt-4 mb-2"/>
@@ -114,14 +126,42 @@ export default function EditShortcutDialog({setItems, showEditShortcut, setShowE
                 <motion.form initial={{x: -50, y: -20, opacity: 0, scale: 0.8}} animate={{y: 0, x: 0, opacity: 1, scale: expandIconDialog ? 1 : 1, transition: {delay: 0.06}}} exit={{y: 5, opacity: 0, scale: 0.9, transition: {opacity: {duration: 0.15}}}}  className="z-30 flex flex-col gap-1 bg-card p-4 rounded-xl"
                     onSubmit={async(e)=>{
                         e.preventDefault();
-                        setShowEditShortcut(false)
-                        setItems(await saveGridItem(shortcut.id, {
-                            name: name || "New Shortcut",
-                            type: "websiteShortcut",
-                            url: website,
-                            icon: icon,
-                            iconType: iconType,
-                        }))
+                        setEditing(true)
+                        try {
+                            let finalIcon = icon
+                            if (iconType == "image"){
+                                if (!icon){
+                                    return toast.add({
+                                        title: "Please upload an image",
+                                        description: "You need to upload an image for the shortcut.",
+                                        type: "error"
+                                    })
+                                }
+                                if (icon != shortcut.icon){
+                                    const res = await fetch(icon);
+                                    const blob = await res.blob();
+                                    const file = new File([blob], "filename.png", { type: blob.type });
+                                    const response = await ucdnClient.uploadFiles([file])
+                                    finalIcon = response.uploads[0].viewUrl
+                                }
+                            }
+                            setItems(await saveGridItem(shortcut.id, {
+                                name: name || "New Shortcut",
+                                type: "websiteShortcut",
+                                url: website,
+                                icon: finalIcon,
+                                iconType: iconType,
+                            }))
+                        } catch (error) {
+                            toast.add({
+                                title: "Error adding shortcut",
+                                description: error instanceof Error ? error.message : "There was an error adding the shortcut. Please try again.",
+                                type: "error"
+                            })
+                        } finally {
+                            setEditing(false)
+                            setShowEditShortcut(false)
+                        }
                     }}
                 >
                     <h2 className="mb-2 font-semibold">Edit Shortcut</h2>
@@ -133,7 +173,7 @@ export default function EditShortcutDialog({setItems, showEditShortcut, setShowE
                         <Button type="button" variant="secondary" onClick={()=>{
                             setShowEditShortcut(false)
                         }}>Cancel</Button>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit" disabled={editing}>Save</Button>
                     </div>
                 </motion.form>
             </div>

@@ -5,7 +5,6 @@ import deleteGridItem from "@/lib/actions/grid/deleteGridItem";
 import { Ellipsis, Globe } from "lucide-react";
 import { DynamicIcon, IconName } from "lucide-react/dynamic";
 import { useEffect, useState } from "react";
-import EditShortcutDialog from "../EditShortcutDialog";
 
 export default function WebsiteShortcut({id, name, url, icon, iconType}: {id: string, name: string, url?: string, icon: string | null, iconType: "url" | "image" | "icon"}){
     const { isDragging, setEnableEffect, setItems, setShowEditDialog } = useGridCard();

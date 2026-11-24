@@ -33,20 +33,20 @@ function ChatAttachment({attachment, index}:{attachment: any, index: number}) {
         <AttachmentActions>
             <AttachmentAction disabled={attachment.status == "uploading"} onClick={async () => {
                 if (attachment.status == "uploading") return;
-                if (attachment.status == "uploaded"){
-                    setDeleting(true);
-                    try {
-                        await deleteFile(attachment.url);
-                    } catch (error) {
-                        console.error("Error deleting file:", error);
-                        return toast.add({
-                            title: "Error deleting file",
-                            description: "There was an error deleting your file. Please try again.",
-                            type: "error"
-                        })
-                    }
-                    setDeleting(false);
-                }
+                // if (attachment.status == "uploaded"){
+                //     setDeleting(true);
+                //     try {
+                //         await deleteFile(attachment.url);
+                //     } catch (error) {
+                //         console.error("Error deleting file:", error);
+                //         return toast.add({
+                //             title: "Error deleting file",
+                //             description: "There was an error deleting your file. Please try again.",
+                //             type: "error"
+                //         })
+                //     }
+                //     setDeleting(false);
+                // }
                 setAttachments(attachments.filter((file) => file.url !== attachment.url));
             }}>
                 {deleting ? <Spinner className="size-3"/> : <X/>}

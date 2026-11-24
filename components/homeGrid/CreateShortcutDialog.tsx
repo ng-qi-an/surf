@@ -1,4 +1,4 @@
-import { Globe, Image, SquareDashedPlus, Star, X } from "lucide-react"
+import { Globe, Image, Star, X } from "lucide-react"
 import {AnimatePresence, motion} from "motion/react"
 import { Button } from "../ui/button"
 import { GridItemType } from "@/lib/db";
@@ -10,6 +10,8 @@ import addGridItem from "@/lib/actions/grid/addGridItem";
 import { generateId } from "ai";
 import SearchIconGrid from "./SearchIconGrid";
 import { IconName } from "lucide-react/dynamic";
+import { toast } from "../ui/toast";
+import { ucdnClient } from "@/ucdnClient";
 
 export default function CreateShortcutDialog({setItems, setShowCreateShortcut, expandIconDialog, setExpandIconDialog}:{setItems: React.Dispatch<React.SetStateAction<GridItemType[]>>; setShowCreateShortcut: React.Dispatch<React.SetStateAction<boolean>>; expandIconDialog: boolean; setExpandIconDialog: React.Dispatch<React.SetStateAction<boolean>>}){
     const [name, setName] = useState("")
@@ -17,6 +19,7 @@ export default function CreateShortcutDialog({setItems, setShowCreateShortcut, e
     const [icon, setIcon] = useState("")
     const [iconType, setIconType] = useState<"url" | "image" | "icon">("url")
     const [searchIcon, setSearchIcon] = useState("")
+    const [creating, setCreating] = useState(false)
     const [websiteChangeTimeout, setWebsiteChangeTimeout] = useState<NodeJS.Timeout | null>(null)
     useEffect(()=>{
         if (websiteChangeTimeout) clearTimeout(websiteChangeTimeout)
@@ -74,11 +77,20 @@ export default function CreateShortcutDialog({setItems, setShowCreateShortcut, e
                         </motion.div>
                     </div>
                     <AnimatePresence mode="wait">
-                        {iconType == "image" ? <motion.div key="shortcutsImageUpload" initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: 10}}>
+                        {iconType == "image" ? <motion.div key="shortcutsImageUpload" initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: 10}} className="flex flex-col">
                             <label htmlFor="shortcutImageUpload" className="mt-2 text-sm opacity-90 mb-1">Upload image</label>
                             <Input required id="shortcutImageUpload" onChange={(e) => {
-                                
-                            }} placeholder="New Shortcut" type="file" className="w-full mt-1"/>
+                                if (e.target.files && e.target.files[0]) {
+                                    const file = e.target.files[0];
+                                    const reader = new FileReader();
+                                    reader.onload = (event) => {
+                                        if (event.target?.result) {
+                                            setIcon(event.target.result as string);
+                                        }
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            }} placeholder="New Shortcut" type="file" className="w-[362px] mt-1"/>
                         </motion.div> : iconType == "icon" ? <motion.div key="shortcutsIconPicker" initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: 10}} className="min-h-0 flex-1 flex flex-col">
                             <Input value={searchIcon} onChange={(e)=> setSearchIcon(e.target.value)} placeholder="Search icons" className="w-full mt-4 mb-2"/>
                             <SearchIconGrid selectedIcon={icon as IconName} onSelect={setIcon} query={searchIcon} className="overflow-auto min-h-0"/>
@@ -107,16 +119,42 @@ export default function CreateShortcutDialog({setItems, setShowCreateShortcut, e
             <motion.form initial={{x: -50, y: -20, opacity: 0, scale: 0.8}} animate={{y: 0, x: 0, opacity: 1, scale: expandIconDialog ? 1 : 1, transition: {delay: 0.06}}} exit={{y: 5, opacity: 0, scale: 0.9, transition: {opacity: {duration: 0.15}}}}  className="z-30 flex flex-col gap-1 bg-card p-4 rounded-xl"
                 onSubmit={async(e)=>{
                     e.preventDefault();
-                    setShowCreateShortcut(false)
-                    setItems(await addGridItem({
-                        id: generateId(),
-                        name: name || "New Shortcut",
-                        type: "websiteShortcut",
-                        url: website,
-                        icon: icon,
-                        iconType: iconType,
-                        updatedAt: new Date(),
-                    }))
+                    setCreating(true)
+                    try {
+                        let finalIcon = icon
+                        if (iconType == "image"){
+                            if (!icon){
+                                return toast.add({
+                                    title: "Please upload an image",
+                                    description: "You need to upload an image for the shortcut.",
+                                    type: "error"
+                                })
+                            }
+                            const res = await fetch(icon);
+                            const blob = await res.blob();
+                            const file = new File([blob], "filename.png", { type: blob.type });
+                            const response = await ucdnClient.uploadFiles([file])
+                            finalIcon = response.uploads[0].viewUrl
+                        }
+                        setItems(await addGridItem({
+                            id: generateId(),
+                            name: name || "New Shortcut",
+                            type: "websiteShortcut",
+                            url: website,
+                            icon: finalIcon,
+                            iconType: iconType,
+                            updatedAt: new Date(),
+                        }))
+                    } catch (error) {
+                        toast.add({
+                            title: "Error adding shortcut",
+                            description: error instanceof Error ? error.message : "There was an error adding the shortcut. Please try again.",
+                            type: "error"
+                        })
+                    } finally {
+                        setCreating(false)
+                        setShowCreateShortcut(false)
+                    }
                 }}
             >
                 <h2 className="mb-2 font-semibold">New Shortcut</h2>
@@ -125,10 +163,10 @@ export default function CreateShortcutDialog({setItems, setShowCreateShortcut, e
                 <label htmlFor="shortcutUrl" className="mt-2 text-sm opacity-90">Where should it go?</label>
                 <Input required id="shortcutUrl" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" className="w-80 "/>
                 <div className="flex gap-2 mt-4 justify-between w-full">
-                    <Button type="button" variant="secondary" onClick={()=>{
+                    <Button disabled={creating} type="button" variant="secondary" onClick={()=>{
                         setShowCreateShortcut(false)
                     }}>Cancel</Button>
-                    <Button type="submit">Create</Button>
+                    <Button disabled={creating} type="submit">Create</Button>
                 </div>
             </motion.form>
         </div>
